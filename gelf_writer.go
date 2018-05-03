@@ -51,9 +51,6 @@ type Message struct {
 	Full     string                 `json:"full_message"`
 	TimeUnix float64                `json:"timestamp"`
 	Level    int32                  `json:"level"`
-	Facility string                 `json:"facility"`
-	File     string                 `json:"file"`
-	Line     int                    `json:"line"`
 	Extra    map[string]interface{} `json:"-"`
 }
 
@@ -241,7 +238,7 @@ func (w *Writer) Warning(m string) (err error)
 func (w *Writer) Write(p []byte) (n int, err error) {
 
 	// 1 for the function that called us.
-	file, line := getCallerIgnoringLogMulti(1)
+	//file, line := getCallerIgnoringLogMulti(1)
 
 	// remove trailing and leading whitespace
 	p = bytes.TrimSpace(p)
@@ -264,9 +261,6 @@ func (w *Writer) Write(p []byte) (n int, err error) {
 		Full:     string(full),
 		TimeUnix: float64(time.Now().UnixNano()/1000000) / 1000.,
 		Level:    6, // info
-		Facility: w.Facility,
-		File:     file,
-		Line:     line,
 		Extra:    map[string]interface{}{},
 	}
 
@@ -327,12 +321,6 @@ func (m *Message) UnmarshalJSON(data []byte) error {
 			m.TimeUnix = v.(float64)
 		case "level":
 			m.Level = int32(v.(float64))
-		case "facility":
-			m.Facility = v.(string)
-		case "file":
-			m.File = v.(string)
-		case "line":
-			m.Line = int(v.(float64))
 		}
 	}
 	return nil

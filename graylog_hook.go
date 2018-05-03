@@ -37,8 +37,6 @@ type GraylogHook struct {
 // Graylog needs file and line params
 type graylogEntry struct {
 	*logrus.Entry
-	file string
-	line int
 }
 
 // NewGraylogHook creates a hook to be added to an instance of logger.
@@ -97,7 +95,7 @@ func (hook *GraylogHook) Fire(entry *logrus.Entry) error {
 
 	// get caller file and line here, it won't be available inside the goroutine
 	// 1 for the function that called us.
-	file, line := getCallerIgnoringLogMulti(1)
+	//file, line := getCallerIgnoringLogMulti(1)
 
 	newData := make(map[string]interface{})
 	for k, v := range entry.Data {
@@ -111,7 +109,7 @@ func (hook *GraylogHook) Fire(entry *logrus.Entry) error {
 		Level:   entry.Level,
 		Message: entry.Message,
 	}
-	gEntry := graylogEntry{newEntry, file, line}
+	gEntry := graylogEntry{newEntry}
 
 	if hook.synchronous {
 		hook.sendEntry(gEntry)
@@ -195,11 +193,11 @@ func (hook *GraylogHook) sendEntry(entry graylogEntry) {
 				}
 				if stackTrace := extractStackTrace(asError); stackTrace != nil {
 					extra[StackTraceKey] = fmt.Sprintf("%+v", stackTrace)
-					file, line := extractFileAndLine(stackTrace)
-					if file != "" && line != 0 {
-						entry.file = file
-						entry.line = line
-					}
+					//file, line := extractFileAndLine(stackTrace)
+					//if file != "" && line != 0 {
+					//	entry.file = file
+					//	entry.line = line
+					//}
 				}
 			} else {
 				extra[extraK] = v
@@ -214,8 +212,6 @@ func (hook *GraylogHook) sendEntry(entry graylogEntry) {
 		Full:     string(full),
 		TimeUnix: float64(time.Now().UnixNano()/1000000) / 1000.,
 		Level:    level,
-		File:     entry.file,
-		Line:     entry.line,
 		Extra:    extra,
 	}
 
